@@ -53,10 +53,61 @@ const getTransactions = async (req, res, next) => {
       user: req.user.id,
     };
 
-    const transactions = await Tx.find(filter).select("-__v");
+    //filter by type
+    if(req.query.type){
+      filter.type = req.query.type
+    }
+
+    //search
+    if(req.query.search) {
+      filter.$or = [
+        {
+          name: {
+            $regex: req.query.search,
+            $options : "i"
+          }
+        },
+        {
+          category: {
+            $regex: req.query.search,
+            $options : "i"
+          }
+        },
+        {
+          notes: {
+            $regex: req.query.search,
+            $options : "i"
+          }
+        },
+        {
+          type: {
+            $regex: req.query.search,
+            $options: 'i'
+          }
+        }
+      ]
+    }
+
+
+    //sort
+    const allowedSort = ["createdAt", "-createdAt", "amount", "-amount"]
+    const sortBy = allowedSort.includes(req.query.sortBy)? req.query.sortBy : "-createdAt;"
+
+    //pagination
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1 ) * limit;
+    
+    const transactions = await Tx.find(filter).select("-__v")
+    .sort(sortBy).skip(skip).limit(limit);
+
+    const totalTransactions = await Tx.countDocuments(filter)
 
     res.status(200).json({
       success: true,
+      totalTransactions,
+      currentPage: page,
+      totalPages: Math.ceil(totalTransactions/ limit),
       transactions,
     });
   } catch (error) {
