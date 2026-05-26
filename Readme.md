@@ -1,3 +1,7 @@
 # This is an expense tracker application. 
 
 22/05/26 : basic login / regsiter , Basic CRUD API 
+
+24/05/26 : combined query enabled
+
+26/05/26 : added budgets , the summary ftom the budgets (without aggregation pipleine)

@@ -12,7 +12,7 @@ const createTransaction = async (req, res, next) => {
     }
     const foramttedName = name.trim();
     const formattedType = type.toLowerCase().trim();
-    const formattedCategory = category ? category.trim() : undefined;
+    const formattedCategory = category ? category.toLowerCase().trim() : undefined;
 
     if (!Number(amount) || amount <= 0) {
       return res.status(400).json({
@@ -137,7 +137,7 @@ const updateTransactions = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "task updated",
-      transaction,
+      transaction
     });
   } catch (error) {
     next(error);
