@@ -5,3 +5,5 @@
 24/05/26 : combined query enabled
 
 26/05/26 : added budgets , the summary ftom the budgets (without aggregation pipleine)
+
+27/05/26 : dashboard addded with monthly and category apis ( with aggregation pipeline)

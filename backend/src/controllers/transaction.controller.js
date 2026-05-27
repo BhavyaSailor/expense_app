@@ -4,7 +4,7 @@ const createTransaction = async (req, res, next) => {
   try {
     const { name, amount, type, category, notes, date } = req.body;
 
-    if (!name || !amount || !type) {
+    if (!name || !amount || !type || !category) {
       return res.status(400).json({
         success: false,
         message: "name, amount and type are required",
@@ -129,9 +129,21 @@ const updateTransactions = async (req, res, next) => {
       });
     }
 
-    transaction.name = req.body.name || transaction.name;
-    transaction.amount = req.body.amount || transaction.amount;
-    transaction.category = req.body.category || transaction.category;
+    if (req.body.name) {
+      transaction.name = req.body.name.toLowerCase().trim();
+    }
+
+    if (req.body.amount !== undefined) {
+      transaction.amount = req.body.amount;
+    }
+
+    if (req.body.category) {
+      transaction.category = req.body.category.toLowerCase().trim();
+    }
+    if (req.body.notes) {
+      transaction.notes = req.body.notes.toLowerCase().trim();
+    }
+
     await transaction.save();
 
     res.status(200).json({

@@ -72,12 +72,4 @@ const login = async (req, res, next) => {
   }
 };
 
-// const profile = async (req, res, next) => {
-//   try {
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-
 module.exports = {register, login};
