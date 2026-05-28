@@ -55,9 +55,24 @@ const getTransactions = async (req, res, next) => {
 
     //filter by type
     if(req.query.type){
-      filter.type = req.query.type
+      filter.type = req.query.type.trim().toLowerCase();
     }
+if(req.query.category){
+  filter.category = req.query.category
+    .trim()
+    .toLowerCase();
+}
 
+if(req.query.startDate || req.query.endDate){
+  filter.createdAt = {};
+
+  if(req.query.startDate){
+    filter.createdAt.$gte = new Date(req.query.startDate);
+  }
+  if(req.query.endDate){
+    filter.createdAt.$lte = new Date(req.query.endDate);
+  }
+}
     //search
     if(req.query.search) {
       filter.$or = [

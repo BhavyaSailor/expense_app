@@ -99,7 +99,7 @@ const getCategories = async(req, res, next) =>{
             {
                 $sort: {total: -1}
             },
-             {
+            {
               $project: {
                 _id: 0,
                 category: "$_id",
