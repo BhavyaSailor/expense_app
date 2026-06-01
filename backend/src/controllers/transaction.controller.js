@@ -8,7 +8,7 @@ const createTransaction = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: "name, amount and type are required",
-      });
+      }); 
     }
     const foramttedName = name.trim();
     const formattedType = type.toLowerCase().trim();
@@ -106,7 +106,7 @@ if(req.query.startDate || req.query.endDate){
 
     //sort
     const allowedSort = ["createdAt", "-createdAt", "amount", "-amount"]
-    const sortBy = allowedSort.includes(req.query.sortBy)? req.query.sortBy : "-createdAt;"
+    const sortBy = allowedSort.includes(req.query.sortBy)? req.query.sortBy : "-createdAt"
 
     //pagination
     const page = Number(req.query.page) || 1;

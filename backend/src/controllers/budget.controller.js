@@ -26,7 +26,7 @@ const createBudget = async (req, res, next) => {
     }
 
     const budget = await Budget.create({
-      category: category.trim(),
+      category,
       limit,
       month,
       year,
@@ -51,7 +51,7 @@ const getBudgets = async (req, res, next) => {
     if (!budgets) {
       return res.status(404).json({
         success: false,
-        message: "BKL budget tera baap banayega",
+        message: "No budgets",
       });
     }
     res.status(200).json({
