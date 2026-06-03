@@ -17,7 +17,6 @@ const getDashboard = async (req, res, next) => {
         }
       }
     ]);
-    
 
     const expense = await Tx.aggregate([
       {
@@ -33,17 +32,34 @@ const getDashboard = async (req, res, next) => {
         }
       }
     ]);
+
+    const savings = await Tx.aggregate([
+      {
+        $match: {
+          user: req.user._id,
+          type: "savings",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
    
     const totalIncome = income[0]?.total || 0;
     const totalExpense = expense[0]?.total || 0;
+    const totalSavings = savings[0]?.total || 0;
 
-    const balance = totalIncome - totalExpense;
-
+    const balance = totalIncome - totalExpense - totalSavings;
+ 
     res.status(200).json({
       success: true,
       totalIncome,
       totalExpense,
-      balance
+      totalSavings,
+      balance,
     });
   } 
   catch(error) {

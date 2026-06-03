@@ -12,7 +12,7 @@ const transactionSchema = mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["income", "expense"],
+      enum: ["income", "expense", "savings"],
       required: true,
     },
     category: String,
@@ -24,6 +24,7 @@ const transactionSchema = mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
   },
   {

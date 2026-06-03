@@ -121,7 +121,7 @@ const deleteBudget = async (req, res, next) => {
 const getBudgetSummary = async (req, res, next) => {
   try {
     const budgets = await Budget.find({
-      user: req.user.id
+      user: req.user.id,
     });
 
     const summary = [];
@@ -142,6 +142,13 @@ const getBudgetSummary = async (req, res, next) => {
       const remaining = budget.limit - spent;
 
       const percentageUsed = (spent / budget.limit) * 100;
+      let status = "safe";
+
+      if (percentageUsed >= 100) {
+        status = "exceeded";
+      } else if (percentageUsed >= 80) {
+        status = "warning";
+      }
 
       summary.push({
         category: budget.category,
@@ -149,18 +156,17 @@ const getBudgetSummary = async (req, res, next) => {
         spent,
         remaining,
         percentageUsed: Number(percentageUsed.toFixed(2)),
-        status: spent > budget.limit ? "exceeded" : "Within Budget",
+        status,
       });
     }
-      res.status(200).json({
-        success: true,
-        summary,
-      });
+    res.status(200).json({
+      success: true,
+      summary,
+    });
   } catch (error) {
     next(error);
   }
 };
-
 
 module.exports = {
   createBudget,

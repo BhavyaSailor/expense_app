@@ -10,4 +10,6 @@
 
 28/05/26 : changed dashboard to analytics but didnt delete the logic (will do later), also added filter by date
 
-1/6/26: some more changes in the analytics, implemented goals
+1/6/26: some more changes in the analytics, implemented goals as a feature
+
+3/6/26 : can export csv and pdfs (only added csv to some transactions), added savings as a kind of type in transactions

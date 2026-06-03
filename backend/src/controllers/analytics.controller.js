@@ -78,7 +78,7 @@ const getRecentExpense = async (req, res, next) => {
       .select("-__v");
 
     res.status(200).json({
-      sucess: true,
+      success: true,
       recent,
     });
   } catch (error) {
@@ -158,12 +158,34 @@ const getStats = async (req, res, next) => {
       },
     ]);
 
+    const savings = await Tx.aggregate([
+      {
+        $match: {
+          user: req.user._id,
+          type: "savings",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSavings: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    const totalSavings = savings[0]?.totalSavings || 0;
+
     const stats = {
       totalTransactions,
       totalIncome: income[0]?.total || 0,
       totalExpense: expense[0]?.totalExpense || 0,
+      totalSavings,
       averageExpense: Number(expense[0]?.averageExpense?.toFixed(2) || 0),
       highestExpense: expense[0]?.highestExpense || 0,
+      netBalance:
+        (income[0]?.total || 0) -
+        (expense[0]?.totalExpense || 0) -
+        totalSavings,
     };
     res.status(200).json({
       success: true,

@@ -11,6 +11,7 @@ const budgetRoutes = require("./src/routes/budget.routes")
 const dashboardRoutes = require("./src/routes/dashboard.routes")
 const analyticsRoutes = require("./src/routes/analytics.routes");
 const goalRoutes = require("./src/routes/goal.routes");
+const exportRoutes = require("./src/routes/export.routes");
 const app = express();
 
 app.use(cors());
@@ -21,6 +22,7 @@ app.use("/api/budget", budgetRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/goal", goalRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/export", exportRoutes);
 app.use(errorHandler);
 
 const startServer = async () => {

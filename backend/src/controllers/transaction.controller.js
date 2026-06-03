@@ -7,7 +7,7 @@ const createTransaction = async (req, res, next) => {
     if (!name || !amount || !type || !category) {
       return res.status(400).json({
         success: false,
-        message: "name, amount and type are required",
+        message: "name, amount, type and category are required",
       }); 
     }
     const foramttedName = name.trim();
@@ -21,10 +21,10 @@ const createTransaction = async (req, res, next) => {
       });
     }
 
-    if (formattedType !== "income" && formattedType !== "expense") {
+    if (formattedType !== "income" && formattedType !== "expense" && formattedType !== "savings") {
       return res.status(400).json({
         success: false,
-        message: "Type must be income or expense ",
+        message: "Type must be income, expense or savings",
       });
     }
 
@@ -163,7 +163,7 @@ const updateTransactions = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "task updated",
+      message: "transaction updated",
       transaction
     });
   } catch (error) {
@@ -188,7 +188,7 @@ const deleteTransaction = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "deleted successfully",
+      message: "transaction deleted successfully",
     });
   } catch (error) {
     next(error);
