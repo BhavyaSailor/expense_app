@@ -13,3 +13,5 @@
 1/6/26: some more changes in the analytics, implemented goals as a feature
 
 3/6/26 : can export csv and pdfs (only added csv to some transactions), added savings as a kind of type in transactions
+
+4/6/26: small changes regarding backend deplaoment testing

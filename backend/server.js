@@ -16,7 +16,12 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/auth", authRoutes);
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to Expense Tracker API",
+  });
+});app.use("/api/auth", authRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/budget", budgetRoutes);
 app.use("/api/analytics", analyticsRoutes);
