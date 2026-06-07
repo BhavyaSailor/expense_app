@@ -37,28 +37,30 @@ function Login() {
           <p className="text-muted">Log in to access your finance dashboard.</p>
           {error && <p className="text-muted" style={{ color: '#ef4444' }}>{error}</p>}
           <form onSubmit={handleSubmit} className="input-group">
-            <label>Email</label>
-            <input
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
+            <div className="input-group">
+              <label>Email</label>
+              <input
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label>Password</label>
+              <input
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <Button variant="primary" type="submit">Login</Button>
           </form>
-          <form onSubmit={handleSubmit} className="input-group">
-            <label>Password</label>
-            <input
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
-          </form>
-          <Button variant="primary" onClick={handleSubmit}>Login</Button>
           <p className="text-muted">Don’t have an account? <a href="/register">Register</a></p>
         </div>
       </div>

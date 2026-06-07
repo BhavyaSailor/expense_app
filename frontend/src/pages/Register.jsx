@@ -37,39 +37,41 @@ function Register() {
           {error && <p className="text-muted" style={{ color: '#ef4444' }}>{error}</p>}
           {success && <p className="text-muted" style={{ color: '#16a34a' }}>{success}</p>}
           <form onSubmit={handleSubmit} className="input-group">
-            <label>Name</label>
-            <input
-              name="name"
-              type="text"
-              placeholder="Your name"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
+            <div className="input-group">
+              <label>Name</label>
+              <input
+                name="name"
+                type="text"
+                placeholder="Your name"
+                value={form.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label>Email</label>
+              <input
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label>Password</label>
+              <input
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <Button variant="primary" type="submit">Register</Button>
           </form>
-          <form onSubmit={handleSubmit} className="input-group">
-            <label>Email</label>
-            <input
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={handleChange}
-              required
-            />
-          </form>
-          <form onSubmit={handleSubmit} className="input-group">
-            <label>Password</label>
-            <input
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={handleChange}
-              required
-            />
-          </form>
-          <Button variant="primary" onClick={handleSubmit}>Register</Button>
           <p className="text-muted">Already have an account? <a href="/login">Login</a></p>
         </div>
       </div>

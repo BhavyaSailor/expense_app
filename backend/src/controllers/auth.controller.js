@@ -10,15 +10,16 @@ const register = async (req, res, next) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({
-        sucess: false,
-        message: "all fileds required"
+        success: false,
+        message: "All fields are required",
       });
     }
 
-    const existingUser = await User.find({email});
-    if (!existingUser) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({
-        message: "User already Exists",
+        success: false,
+        message: "User already exists",
       });
     }
 
