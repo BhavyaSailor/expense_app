@@ -56,12 +56,6 @@ const getGoals = async (req, res, next) => {
     const goals = await Goal.find({
       user: req.user._id,
     });
-    if (goals.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Goals doesn't exist",
-      });
-    }
     const formattedGoals = goals.map((goal) => {
       const progress = (goal.currentAmount / goal.targetAmount) * 100;
       const remaining = goal.targetAmount - goal.currentAmount;

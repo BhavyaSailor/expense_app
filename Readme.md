@@ -1,17 +1,22 @@
 # This is an expense tracker application. 
 
-22/05/26 : basic login / regsiter , Basic CRUD API 
+## This is Trackspense : an expense tracker application. 
 
-24/05/26 : combined query enabled
+### 22/05/26 : basic login / regsiter , Basic CRUD API 
 
-26/05/26 : added budgets , the summary ftom the budgets (without aggregation pipleine)
+### 24/05/26 : combined query enabled
 
-27/05/26 : dashboard addded with monthly and category apis ( with aggregation pipeline)
+### 26/05/26 : added budgets , the summary ftom the budgets (without aggregation pipleine)
 
-28/05/26 : changed dashboard to analytics but didnt delete the logic (will do later), also added filter by date
+### 27/05/26 : dashboard addded with monthly and category apis ( with aggregation pipeline)
 
-1/6/26: some more changes in the analytics, implemented goals as a feature
+### 28/05/26 : changed dashboard to analytics but didnt delete the logic (will do later), also added filter by date
 
-3/6/26 : can export csv and pdfs (only added csv to some transactions), added savings as a kind of type in transactions
+### 1/6/26: some more changes in the analytics, implemented goals as a feature
 
-4/6/26: small changes regarding backend deplaoment testing
+### 3/6/26 : can export csv and pdfs (only added csv to some transactions), added savings as a kind of type in transactions
+
+### 4/6/26: small changes regarding backend deplaoment testing
+
+### 7/6/26 : added the frontend [ vibecoded ]. it still has many flaws but this is just a demo project for my backend
+
