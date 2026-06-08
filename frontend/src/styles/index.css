@@ -509,15 +509,24 @@ a {
     width: 100%;
     height: 100%;
     max-width: 320px;
+    max-height: 100vh;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     z-index: 20;
     background: var(--surface);
     border-right: 1px solid rgba(148, 163, 184, 0.12);
+    overflow-y: auto;
   }
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 19;
   }
 
   .topbar {
@@ -539,6 +548,55 @@ a {
 
   .page-shell {
     padding-bottom: 5rem;
+  }
+
+  .table-shell thead {
+    display: none;
+  }
+
+  .table-shell,
+  .table-shell tbody,
+  .table-shell tr,
+  .table-shell td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-shell tr {
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 20px;
+    background: #ffffff;
+  }
+
+  .table-shell td {
+    padding: 0.5rem 0 0.75rem 0;
+    border: none;
+    text-align: left;
+  }
+
+  .table-shell td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .table-shell td:first-child {
+    padding-top: 0;
+  }
+
+  .table-shell td .button {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.9rem;
+    margin-right: 0.5rem;
+  }
+
+  .table-shell td .button:last-child {
+    margin-right: 0;
   }
 }
 

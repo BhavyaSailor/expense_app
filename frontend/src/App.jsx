@@ -50,6 +50,7 @@ function App() {
   return (
     <div className="app-shell">
       <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      {drawerOpen && <div className="sidebar-overlay" onClick={() => setDrawerOpen(false)} />}
       <div className="content-area">
         <Topbar onOpenDrawer={() => setDrawerOpen(true)} onLogout={handleLogout} />
         <main className="page-shell">
