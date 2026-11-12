@@ -48,15 +48,9 @@ const getBudgets = async (req, res, next) => {
       user: req.user.id,
     });
 
-    if (!budgets) {
-      return res.status(404).json({
-        success: false,
-        message: "No budgets",
-      });
-    }
     res.status(200).json({
       success: true,
-      budgets,
+      budgets: budgets || [],
     });
   } catch (error) {
     next(error);

@@ -10,10 +10,10 @@ const{
     deleteBudget
 } = require("../controllers/budget.controller")
 
-router.post("/",auth, createBudget);
-router.get("/",auth, getBudgets);
-router.get("/summary",auth, getBudgetSummary);
-router.delete("/",auth, deleteBudget);
-router.put("/", auth,updateBudget);
+router.post('/', auth, createBudget);
+router.get('/', auth, getBudgets);
+router.get('/summary', auth, getBudgetSummary);
+router.delete('/:id', auth, deleteBudget);
+router.put('/:id', auth, updateBudget);
 
 module.exports = router;
