@@ -1,81 +1,79 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import AuthShell from '../components/layout/AuthShell';
 import Button from '../components/ui/Button';
-import { authApi } from '../utils/api';
+import Icon from '../components/ui/Icon';
+import usePageTitle from '../hooks/usePageTitle';
+import { useFeedback } from '../context/Feedback';
+import { authApi, isAuthed } from '../utils/api';
 
 function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  usePageTitle('Create account');
   const navigate = useNavigate();
+  const { toast } = useFeedback();
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-  };
+  if (isAuthed()) return <Navigate to="/" replace />;
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  const submit = async (e) => {
+    e.preventDefault();
     setError('');
-    setSuccess('');
-
+    if (form.password.length < 8) return setError('Use a password with at least 8 characters.');
+    setLoading(true);
     try {
-      await authApi.register(form.name, form.email, form.password);
-      setSuccess('Account created successfully. Redirecting to login...');
-      setTimeout(() => navigate('/login'), 1200);
+      await authApi.register(form.name.trim(), form.email.trim(), form.password);
+      toast.success('Account created. Log in to get started.');
+      navigate('/login', { replace: true });
     } catch (err) {
       setError(err.message);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card card">
-        <div className="card-inner">
-          <h1 className="page-title">Create account</h1>
-          <p className="text-muted">Get started with a secure finance dashboard.</p>
-          {error && <p className="text-muted" style={{ color: '#ef4444' }}>{error}</p>}
-          {success && <p className="text-muted" style={{ color: '#16a34a' }}>{success}</p>}
-          <form onSubmit={handleSubmit} className="input-group">
-            <div className="input-group">
-              <label>Name</label>
-              <input
-                name="name"
-                type="text"
-                placeholder="Your name"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="input-group">
-              <label>Email</label>
-              <input
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="input-group">
-              <label>Password</label>
-              <input
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <Button variant="primary" type="submit">Register</Button>
-          </form>
-          <p className="text-muted">Already have an account? <a href="/login">Login</a></p>
+    <AuthShell
+      title="Create your account"
+      subtitle="Start tracking income, spending and savings in one place."
+      footer={
+        <>
+          Already have an account? <Link to="/login">Log in</Link>
+        </>
+      }
+    >
+      <form className="stack" onSubmit={submit}>
+        <div className="field">
+          <label htmlFor="name">Name</label>
+          <input id="name" name="name" autoComplete="name" value={form.name} onChange={change} required />
         </div>
-      </div>
-    </div>
+        <div className="field">
+          <label htmlFor="email">Email</label>
+          <input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" value={form.email} onChange={change} required />
+        </div>
+        <div className="field">
+          <label htmlFor="password">Password</label>
+          <div className="input-wrap">
+            <input id="password" name="password" type={show ? 'text' : 'password'} autoComplete="new-password" value={form.password} onChange={change} required />
+            <button type="button" className="input-toggle" onClick={() => setShow((s) => !s)} aria-label={show ? 'Hide password' : 'Show password'}>
+              <Icon name={show ? 'eyeOff' : 'eye'} size={18} />
+            </button>
+          </div>
+          <p className="hint">At least 8 characters.</p>
+        </div>
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
+        <Button variant="primary" type="submit" loading={loading}>
+          Create account
+        </Button>
+      </form>
+    </AuthShell>
   );
 }
 

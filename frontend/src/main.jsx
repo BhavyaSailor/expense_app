@@ -2,12 +2,18 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { ThemeProvider } from './context/Theme';
+import { FeedbackProvider } from './context/Feedback';
 import './styles/index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ThemeProvider>
+      <FeedbackProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </FeedbackProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

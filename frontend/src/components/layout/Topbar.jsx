@@ -1,51 +1,52 @@
-import { useState, useEffect } from 'react';
-import { authApi } from '../../utils/api';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Icon from '../ui/Icon';
+import Logo from '../ui/Logo';
+import Button from '../ui/Button';
+import { useApp } from '../../context/App';
+import { useTheme } from '../../context/Theme';
 
-function Topbar({ onOpenDrawer, onLogout }) {
-  const [user, setUser] = useState(null);
-  const [query, setQuery] = useState('');
+function Topbar({ onMenu }) {
   const navigate = useNavigate();
+  const { openTxForm } = useApp();
+  const { resolved, toggle } = useTheme();
+  const [query, setQuery] = useState('');
 
-  useEffect(() => {
-    const userData = authApi.getUser();
-    setUser(userData);
-  }, []);
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      const q = (query || '').trim();
-      if (q) navigate(`/transactions?q=${encodeURIComponent(q)}`);
-    }
+  const submit = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    navigate(q ? `/transactions?q=${encodeURIComponent(q)}` : '/transactions');
   };
 
   return (
-    <header className="topbar card">
-      <div className="topbar-left">
-        <button className="button ghost hamburger" onClick={onOpenDrawer} aria-label="Open navigation drawer">
-          ☰
-        </button>
-        <div className="search-box input-group">
-          {/* <label htmlFor="dashboard-search" className="sr-only">Search transactions</label> */}
-          <input
-            id="dashboard-search"
-            type="search"
-            placeholder="Search transactions, categories, goals"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            aria-label="Search transactions"
-          />
-        </div>
+    <header className="topbar">
+      <button className="btn icon ghost menu-btn" onClick={onMenu} aria-label="Open menu">
+        <Icon name="menu" />
+      </button>
+      <div className="topbar-logo">
+        <Logo />
       </div>
-      <div className="topbar-right">
-        <button className="button secondary user-button" onClick={() => navigate('/profile')} aria-label="User profile">
-          {user?.name || 'User'} <span>▾</span>
-        </button>
-        <button className="button ghost logout-btn" onClick={onLogout} aria-label="Logout">
-          Logout
-        </button>
-      </div>
+      <form className="search" role="search" onSubmit={submit}>
+        <Icon name="search" size={18} />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search transactions"
+          aria-label="Search transactions"
+        />
+      </form>
+      <div className="spacer" />
+      <button
+        className="btn icon ghost"
+        onClick={toggle}
+        aria-label={`Switch to ${resolved === 'dark' ? 'light' : 'dark'} theme`}
+      >
+        <Icon name={resolved === 'dark' ? 'sun' : 'moon'} />
+      </button>
+      <Button variant="primary" icon="plus" onClick={() => openTxForm()} aria-label="Add transaction">
+        <span className="btn-label">Add transaction</span>
+      </Button>
     </header>
   );
 }

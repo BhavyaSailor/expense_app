@@ -1,48 +1,50 @@
 import { NavLink } from 'react-router-dom';
+import Icon from '../ui/Icon';
+import Logo from '../ui/Logo';
+import { authApi } from '../../utils/api';
 
-const navItems = [
-  { label: 'Dashboard', path: '/', icon: '📊' },
-  { label: 'Transactions', path: '/transactions', icon: '💳' },
-  { label: 'Budgets', path: '/budgets', icon: '📈' },
-  { label: 'Goals', path: '/goals', icon: '🎯' },
-  { label: 'Savings', path: '/savings', icon: '💰' },
-  { label: 'Analytics', path: '/analytics', icon: '📉' },
-  { label: 'Profile', path: '/profile', icon: '👤' },
-  { label: 'Settings', path: '/settings', icon: '⚙️' },
+export const NAV_ITEMS = [
+  { label: 'Dashboard', path: '/', icon: 'dashboard', end: true },
+  { label: 'Transactions', path: '/transactions', icon: 'transactions' },
+  { label: 'Budgets', path: '/budgets', icon: 'wallet' },
+  { label: 'Goals', path: '/goals', icon: 'target' },
+  { label: 'Savings', path: '/savings', icon: 'layers' },
+  { label: 'Analytics', path: '/analytics', icon: 'chart' },
 ];
 
-function Sidebar({ open, onClose }) {
+const linkClass = ({ isActive }) => `nav-link${isActive ? ' active' : ''}`;
+
+function Sidebar({ open, onClose, onLogout }) {
+  const user = authApi.getUser();
   return (
-    <aside className={`sidebar ${open ? 'open' : ''}`}>
-      <div className="sidebar-top card">
-        <div className="card-inner">
-          <div className="brand-logo">
-            <span className="icon-pill">T</span>
-            <div>
-              <p className="eyebrow">Trackspense</p>
-              <h1 className="section-title">Pulse</h1>
-            </div>
-          </div>
-        </div>
+    <aside className={`sidebar${open ? ' open' : ''}`} aria-label="Sidebar">
+      <div className="sidebar-brand">
+        <Logo />
+        <button className="btn icon ghost drawer-close" onClick={onClose} aria-label="Close menu">
+          <Icon name="x" />
+        </button>
       </div>
-      <nav className="nav-list">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            onClick={onClose}
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-          >
-            <span>{item.icon}</span>
+      <nav className="nav-list" aria-label="Main">
+        {NAV_ITEMS.map((item) => (
+          <NavLink key={item.path} to={item.path} end={item.end} className={linkClass}>
+            <Icon name={item.icon} />
             <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>
-      <div className="sidebar-footer card">
-        <div className="card-inner">
-          <p className="eyebrow">Pro Tip</p>
-          <p className="text-muted">Check your budgets weekly to stay on track.</p>
-        </div>
+      <div className="sidebar-foot">
+        <NavLink to="/profile" className={linkClass}>
+          <Icon name="user" />
+          <span className="truncate">{user?.name || 'Profile'}</span>
+        </NavLink>
+        <NavLink to="/settings" className={linkClass}>
+          <Icon name="settings" />
+          <span>Settings</span>
+        </NavLink>
+        <button className="nav-link nav-button" onClick={onLogout}>
+          <Icon name="logout" />
+          <span>Log out</span>
+        </button>
       </div>
     </aside>
   );

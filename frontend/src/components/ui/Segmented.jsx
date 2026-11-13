@@ -1,0 +1,19 @@
+function Segmented({ options, value, onChange, label, disabled = false }) {
+  return (
+    <div className="seg" role="group" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={value === option.value}
+          disabled={disabled}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default Segmented;

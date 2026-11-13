@@ -1,7 +1,8 @@
-function ProgressBar({ value = 0, color = 'var(--primary)' }) {
+function ProgressBar({ value = 0, tone = 'ok', label }) {
+  const width = Math.max(0, Math.min(100, value));
   return (
-    <div className="progress-bar">
-      <span style={{ width: `${value}%`, background: color }} />
+    <div className="progress" role="progressbar" aria-valuenow={Math.round(width)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+      <span className={tone} style={{ width: `${width}%` }} />
     </div>
   );
 }

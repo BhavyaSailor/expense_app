@@ -1,98 +1,92 @@
-import { useEffect, useState } from 'react';
-import LineChartPlaceholder from '../components/charts/LineChartPlaceholder';
-import { dashboardApi, transactionsApi, formatRupee } from '../utils/api';
+import { useMemo, useState } from 'react';
+import Panel from '../components/ui/Panel';
+import Button from '../components/ui/Button';
+import RangePicker from '../components/ui/RangePicker';
+import Skeleton from '../components/ui/Skeleton';
+import EmptyState from '../components/ui/EmptyState';
+import ErrorBanner from '../components/ui/ErrorBanner';
+import { SavingsChart } from '../components/charts/SeriesCharts';
+import TxList from '../components/widgets/TxList';
+import useTransactions from '../hooks/useTransactions';
+import usePageTitle from '../hooks/usePageTitle';
+import { useApp } from '../context/App';
+import { formatRupee } from '../utils/api';
+import { categoryTotals, formatPercent, inRange, monthlySeries, percent, resolveRange, sumType, titleCase, txDate } from '../utils/finance';
 
 function Savings() {
-  const [dashboard, setDashboard] = useState({});
-  const [savings, setSavings] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [trend, setTrend] = useState([]);
+  usePageTitle('Savings');
+  const { openTxForm } = useApp();
+  const [range, setRange] = useState({ preset: '12m', from: '', to: '' });
+  const { transactions, loading, error, reload } = useTransactions();
 
-  const loadSavings = async () => {
-    try {
-      const [summary, savingsData, monthly] = await Promise.all([
-        dashboardApi.getDashboard(),
-        transactionsApi.getTransactions({ type: 'savings', limit: 50 }),
-        dashboardApi.getMonthlyTrend(),
-      ]);
-
-      setDashboard(summary);
-      const txs = savingsData.transactions || [];
-      setSavings(txs);
-
-      const grouped = txs.reduce((acc, transaction) => {
-        const category = transaction.category || 'Other';
-        acc[category] = (acc[category] || 0) + Number(transaction.amount);
-        return acc;
-      }, {});
-
-      setCategories(Object.entries(grouped).map(([category, total]) => ({ category, amount: total })));
-
-      // map monthly trend data to chart-friendly format
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const trend = (monthly.month || []).map((m) => ({ label: months[(m._id || 1) - 1] || String(m._id), value: m.total }));
-      setTrend(trend);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-
-  useEffect(() => {
-    loadSavings();
-  }, []);
-
-  const savingsRate = dashboard.totalIncome ? Math.round((dashboard.totalSavings / dashboard.totalIncome) * 100) : 0;
+  const bounds = useMemo(() => resolveRange(range), [range]);
+  const scoped = useMemo(() => inRange(transactions, bounds), [transactions, bounds]);
+  const saved = sumType(scoped, 'savings');
+  const income = sumType(scoped, 'income');
+  const monthly = useMemo(() => monthlySeries(scoped, bounds), [scoped, bounds]);
+  const categories = useMemo(() => categoryTotals(scoped, 'savings', 8), [scoped]);
+  const entries = useMemo(
+    () => scoped.filter((t) => t.type === 'savings').sort((a, b) => txDate(b) - txDate(a)).slice(0, 8),
+    [scoped]
+  );
+  const monthsWithData = monthly.length || 1;
 
   return (
-    <div className="savings-page">
-      <div className="page-heading">
-        <h1 className="page-title">Savings</h1>
-        <p className="text-muted">Overview of savings progress, goals, and categories.</p>
+    <>
+      <div className="page-head">
+        <div>
+          <h1>Savings</h1>
+          <p className="muted">Money you’ve set aside, and how fast it’s growing.</p>
+        </div>
+        <RangePicker value={range} onChange={setRange} />
       </div>
 
-      <div className="section-grid stats-grid">
-        <div className="card">
-          <div className="card-inner">
-            <p className="eyebrow">Total Savings</p>
-            <h2>{formatRupee(dashboard.totalSavings)}</h2>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-inner">
-            <p className="eyebrow">Savings Rate</p>
-            <h2>{savingsRate}%</h2>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-inner">
-            <p className="eyebrow">Monthly Contribution</p>
-            <h2>{formatRupee(12000)}</h2>
-          </div>
-        </div>
-      </div>
+      <ErrorBanner message={error} onRetry={reload} />
 
-      <LineChartPlaceholder title="Savings Trend" subtitle="Track your savings growth over time." data={trend} />
+      {loading ? (
+        <Skeleton height={380} radius={18} />
+      ) : !error && (
+        <>
+          <div className="panel stat-strip">
+            <div><p className="muted small">Saved in this period</p><p className="stat-value">{formatRupee(saved)}</p></div>
+            <div>
+              <p className="muted small">Savings rate</p>
+              <p className="stat-value">{income > 0 ? formatPercent(percent(saved, income)) : 'No income'}</p>
+            </div>
+            <div><p className="muted small">Average per month</p><p className="stat-value">{formatRupee(Math.round(saved / monthsWithData))}</p></div>
+          </div>
 
-      <div className="section-grid widget-grid">
-        {categories.length > 0 ? (
-          categories.map((item) => (
-            <div key={item.category} className="card">
-              <div className="card-inner">
-                <p className="eyebrow">{item.category}</p>
-                <h3>{formatRupee(item.amount)}</h3>
-                <p className="text-muted">Keep building your fund with regular contributions.</p>
+          {saved === 0 ? (
+            <Panel>
+              <EmptyState icon="layers" title="No savings in this period" action={<Button variant="primary" icon="plus" onClick={() => openTxForm()}>Add a savings entry</Button>}>
+                Log a transaction with the Savings type to start building this view.
+              </EmptyState>
+            </Panel>
+          ) : (
+            <>
+              <Panel title="Savings over time" subtitle="Running total starts at zero at the beginning of the range">
+                <SavingsChart data={monthly} />
+              </Panel>
+              <div className="grid-even">
+                <Panel title="By category">
+                  <ul className="mini-list">
+                    {categories.map((c) => (
+                      <li key={c.name} className="row-between">
+                        <span className="font-medium">{c.name === 'other categories' ? 'Other categories' : titleCase(c.name)}</span>
+                        <span>{formatRupee(c.value)} <span className="muted">{formatPercent(c.share)}</span></span>
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+                <Panel title="Latest savings entries">
+                  <TxList items={entries} />
+                </Panel>
               </div>
-            </div>
-          ))
-        ) : (
-          <div className="card">
-            <div className="card-inner">
-              <p className="text-muted">No savings categories available yet.</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+            </>
+          )}
+        </>
+      )}
+    </>
   );
 }
 

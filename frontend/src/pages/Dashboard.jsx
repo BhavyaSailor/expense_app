@@ -1,134 +1,181 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import StatCard from '../components/ui/StatCard';
-import LineChartPlaceholder from '../components/charts/LineChartPlaceholder';
-import PieChartPlaceholder from '../components/charts/PieChartPlaceholder';
-import RecentTransactions from '../components/widgets/RecentTransactions';
-import BudgetCard from '../components/widgets/BudgetCard';
-import GoalCard from '../components/widgets/GoalCard';
-import { dashboardApi, budgetApi, goalApi, transactionsApi, formatRupee } from '../utils/api';
-
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Panel from '../components/ui/Panel';
+import Button from '../components/ui/Button';
+import RangePicker from '../components/ui/RangePicker';
+import Skeleton from '../components/ui/Skeleton';
+import EmptyState from '../components/ui/EmptyState';
+import ErrorBanner from '../components/ui/ErrorBanner';
+import ProgressBar from '../components/ui/ProgressBar';
+import AllocationBar from '../components/charts/AllocationBar';
+import TrendChart from '../components/charts/TrendChart';
+import CategoryChart from '../components/charts/CategoryChart';
+import TxList from '../components/widgets/TxList';
+import useTransactions from '../hooks/useTransactions';
+import useAsync from '../hooks/useAsync';
+import usePageTitle from '../hooks/usePageTitle';
+import { useApp } from '../context/App';
+import { authApi, budgetApi, formatRupee, goalApi } from '../utils/api';
+import {
+  MONTHS_FULL, budgetStatus, categoryTotals, describeRange, greeting, inRange,
+  monthlySeries, percent, resolveRange, spentForBudget, titleCase, totals, txDate,
+} from '../utils/finance';
 
 function Dashboard() {
-  const [summary, setSummary] = useState({});
-  const [monthlyTrend, setMonthlyTrend] = useState([]);
-  const [categorySpending, setCategorySpending] = useState([]);
-  const [dashboardSeries, setDashboardSeries] = useState([]);
-  const [budgetSummary, setBudgetSummary] = useState([]);
-  const [goals, setGoals] = useState([]);
-  const [recent, setRecent] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  usePageTitle('Dashboard');
+  const { version, openTxForm } = useApp();
+  const user = authApi.getUser();
+  const [range, setRange] = useState({ preset: '6m', from: '', to: '' });
+  const { transactions, loading, error, reload } = useTransactions();
+  const budgetsQ = useAsync(() => budgetApi.getBudgets(), [version]);
+  const goalsQ = useAsync(() => goalApi.getGoals(), [version]);
 
-  const loadDashboard = async () => {
-    setLoading(true);
-    try {
-      const [dashboardData, budgetData, goalData, transactionData, monthlyData, categoryData] = await Promise.all([
-        dashboardApi.getDashboard(),
-        budgetApi.getSummary(),
-        goalApi.getGoals(),
-        transactionsApi.getTransactions({ limit: 5 }),
-        dashboardApi.getMonthlyTrend(),
-        dashboardApi.getCategorySpending(),
-      ]);
+  const bounds = useMemo(() => resolveRange(range), [range]);
+  const scoped = useMemo(() => inRange(transactions, bounds), [transactions, bounds]);
+  const sums = useMemo(() => totals(scoped), [scoped]);
+  const monthly = useMemo(() => monthlySeries(scoped, bounds), [scoped, bounds]);
+  const categories = useMemo(() => categoryTotals(scoped, 'expense'), [scoped]);
+  const recent = useMemo(
+    () => [...transactions].sort((a, b) => txDate(b) - txDate(a)).slice(0, 6),
+    [transactions]
+  );
 
-      setSummary(dashboardData);
-      setBudgetSummary(budgetData.summary || []);
-      setGoals(goalData.goals || []);
-      setRecent(transactionData.transactions || []);
+  const now = new Date();
+  const monthBudgets = useMemo(
+    () =>
+      (budgetsQ.data?.budgets || [])
+        .filter((b) => Number(b.month) === now.getMonth() + 1 && Number(b.year) === now.getFullYear())
+        .map((b) => {
+          const spent = spentForBudget(b, transactions);
+          return { ...b, spent, ...budgetStatus(spent, b.limit) };
+        })
+        .sort((a, b) => b.pct - a.pct)
+        .slice(0, 4),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [budgetsQ.data, transactions]
+  );
+  const goals = useMemo(
+    () =>
+      [...(goalsQ.data?.goals || [])]
+        .sort((a, b) => Number(a.status === 'Completed') - Number(b.status === 'Completed'))
+        .slice(0, 3),
+    [goalsQ.data]
+  );
 
-      setMonthlyTrend(
-        (monthlyData.month || []).map((item) => ({
-          label: monthNames[(item._id || 0) - 1] || `M${item._id}`,
-          value: item.total || 0,
-        }))
-      );
-      setCategorySpending(
-        (categoryData.category || []).map((item) => ({
-          label: item.category,
-          value: item.totalSpent || 0,
-        }))
-      );
-      setDashboardSeries([
-        { label: 'Income', value: dashboardData.totalIncome || 0 },
-        { label: 'Expense', value: dashboardData.totalExpense || 0 },
-        { label: 'Savings', value: dashboardData.totalSavings || 0 },
-        { label: 'Balance', value: dashboardData.balance || 0 },
-      ]);
-    } catch (error) {
-      console.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  const firstName = user?.name?.split(' ')[0];
+  const overspent = sums.left < 0;
+  const empty = !loading && !error && transactions.length === 0;
 
   return (
-    <div className="dashboard-page">
-      <div className="page-heading">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="text-muted">A modern view of your finances, savings, and progress.</p>
-        <br />
-      </div>
-
-      <div className="section-grid stats-grid">
-        <StatCard title="Total Income" value={formatRupee(summary.totalIncome)} change="Tracked across all income sources" icon="💵" accent="income" />
-        <StatCard title="Total Expense" value={formatRupee(summary.totalExpense)} change="Total spending this period" icon="📉" accent="expense" />
-        <StatCard title="Total Savings" value={formatRupee(summary.totalSavings)} change="Current savings contributions" icon="💰" accent="savings" />
-        <StatCard title="Available Balance" value={formatRupee(summary.balance)} change="Available for budgets and goals" icon="🧾" accent="primary" />
-      </div>
-
-      <div className="section-grid charts-grid">
-        <LineChartPlaceholder title="Monthly Expense Trend" subtitle="See expense flow across recent months." data={monthlyTrend} />
-        <div className="section-grid">
-          <PieChartPlaceholder title="Spending by Category" subtitle="Top categories this month." data={categorySpending} />
-      
+    <>
+      <div className="page-head">
+        <div>
+          <h1>{firstName ? `${greeting()}, ${firstName}` : greeting()}</h1>
+          <p className="muted">Here’s where your money has gone.</p>
         </div>
+        <RangePicker value={range} onChange={setRange} />
       </div>
-      <br />
 
-      <div className="section-grid widget-grid">
-        <RecentTransactions transactions={recent} />
-        <div className="card">
-          <div className="card-inner">
-            <div className="card-header">
-              <h2 className="section-title">Active Budgets</h2>
-              <button className="button ghost" onClick={() => navigate('/budgets')}>Review</button>
-            </div>
-            <div className="budget-grid">
-              {budgetSummary.length > 0 ? (
-                budgetSummary.slice(0, 3).map((budget) => (
-                  <BudgetCard key={budget.category} budget={budget} />
-                ))
+      <ErrorBanner message={error} onRetry={reload} />
+
+      {loading ? (
+        <>
+          <Skeleton height={220} radius={28} />
+          <div className="grid-2">
+            <Skeleton height={340} radius={18} />
+            <Skeleton height={340} radius={18} />
+          </div>
+        </>
+      ) : empty ? (
+        <Panel>
+          <EmptyState
+            icon="transactions"
+            title="No transactions yet"
+            action={<Button variant="primary" icon="plus" onClick={() => openTxForm()}>Add your first transaction</Button>}
+          >
+            Add an income or expense and your month starts to take shape here.
+          </EmptyState>
+        </Panel>
+      ) : !error && (
+        <>
+          <section className="hero" aria-label="Summary">
+            <p className="hero-label">{overspent ? 'Overspent by' : 'Left to spend'}</p>
+            <p className="hero-figure">{formatRupee(Math.abs(sums.left))}</p>
+            <p className="hero-sub">
+              {sums.income > 0
+                ? `of ${formatRupee(sums.income)} earned ${describeRange(range)}`
+                : `No income recorded ${describeRange(range)}`}
+              {overspent && ', so spending and saving came to more than you earned'}
+            </p>
+            <AllocationBar income={sums.income} expense={sums.expense} savings={sums.savings} />
+          </section>
+
+          <div className="grid-2">
+            <Panel title="Income and expenses" subtitle="Month by month">
+              <TrendChart data={monthly} />
+            </Panel>
+            <Panel title="Where it went" subtitle="Expenses by category">
+              {categories.length ? (
+                <CategoryChart data={categories} />
               ) : (
-                <p className="text-muted">No budget summary available yet.</p>
+                <EmptyState icon="chart" title="No expenses in this period">Try a wider date range.</EmptyState>
               )}
+            </Panel>
+          </div>
+
+          <div className="grid-2">
+            <Panel
+              title="Recent transactions"
+              action={<Link className="btn ghost sm" to="/transactions">View all</Link>}
+            >
+              <TxList items={recent} />
+            </Panel>
+            <div className="stack-lg">
+              <Panel
+                title={`${MONTHS_FULL[now.getMonth()]} budgets`}
+                action={<Link className="btn ghost sm" to="/budgets">Manage</Link>}
+              >
+                {monthBudgets.length ? (
+                  <ul className="mini-list">
+                    {monthBudgets.map((b) => (
+                      <li key={b._id}>
+                        <div className="row-between">
+                          <span className="font-medium">{titleCase(b.category)}</span>
+                          <span className={`status-text ${b.tone}`}>{formatRupee(b.spent)} of {formatRupee(b.limit)}</span>
+                        </div>
+                        <ProgressBar value={b.pct} tone={b.tone} label={`${titleCase(b.category)} budget used`} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted">No budgets set for this month yet. <Link to="/budgets">Set one up</Link>.</p>
+                )}
+              </Panel>
+              <Panel title="Goals" action={<Link className="btn ghost sm" to="/goals">See all</Link>}>
+                {goals.length ? (
+                  <ul className="mini-list">
+                    {goals.map((g) => {
+                      const pct = percent(g.currentAmount, g.targetAmount);
+                      return (
+                        <li key={g._id}>
+                          <div className="row-between">
+                            <span className="font-medium">{g.name}</span>
+                            <span className="muted">{formatRupee(g.currentAmount)} of {formatRupee(g.targetAmount)}</span>
+                          </div>
+                          <ProgressBar value={pct} tone="brand" label={`${g.name} progress`} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="muted">No goals yet. <Link to="/goals">Create your first goal</Link>.</p>
+                )}
+              </Panel>
             </div>
           </div>
-        </div>
-        <div className="card">
-          <div className="card-inner">
-            <div className="card-header">
-              <h2 className="section-title">Active Goals</h2>
-              <button className="button ghost" onClick={() => navigate('/goals')}>Track</button>
-            </div>
-            <div className="goal-grid">
-              {goals.length > 0 ? (
-                goals.slice(0, 3).map((goal) => <GoalCard key={goal._id || goal.id} goal={goal} />)
-              ) : (
-                <p className="text-muted">No goals found yet.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {loading && <p className="text-muted">Refreshing dashboard data...</p>}
-    </div>
+        </>
+      )}
+    </>
   );
 }
 

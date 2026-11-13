@@ -1,22 +1,11 @@
-# This is an expense tracker application. 
+# Trackspense frontend
 
-## This is Trackspense : an expense tracker application. 
+React + Vite + Recharts. Talks to the existing Express API; the backend is unchanged.
 
-### 22/05/26 : basic login / regsiter , Basic CRUD API 
+```bash
+npm install
+cp .env.example .env   # set VITE_API_BASE, e.g. http://localhost:5000/api
+npm run dev
+```
 
-### 24/05/26 : combined query enabled
-
-### 26/05/26 : added budgets , the summary ftom the budgets (without aggregation pipleine)
-
-### 27/05/26 : dashboard addded with monthly and category apis ( with aggregation pipeline)
-
-### 28/05/26 : changed dashboard to analytics but didnt delete the logic (will do later), also added filter by date
-
-### 1/6/26: some more changes in the analytics, implemented goals as a feature
-
-### 3/6/26 : can export csv and pdfs (only added csv to some transactions), added savings as a kind of type in transactions
-
-### 4/6/26: small changes regarding backend deplaoment testing
-
-### 7/6/26 : added the frontend [ vibecoded ]. it still has many flaws but this is just a demo project for my backend
-
+On Vercel, set `VITE_API_BASE` in Project Settings, Environment Variables. `vercel.json` already rewrites all routes to `index.html`.

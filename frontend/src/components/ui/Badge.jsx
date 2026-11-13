@@ -1,5 +1,5 @@
-function Badge({ children, variant = 'neutral' }) {
-  return <span className={`badge ${variant}`}>{children}</span>;
+function Badge({ children, tone = 'neutral' }) {
+  return <span className={`badge ${tone}`}>{children}</span>;
 }
 
 export default Badge;
